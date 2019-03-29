@@ -2,15 +2,17 @@ package testsecnarios;
 
 import com.epam.core.DriverFactory;
 import com.epam.core.GuiComponents;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import com.epam.utils.WebEventListener;
+import io.restassured.RestAssured;
+import org.apache.commons.io.FileUtils;
+import org.junit.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.events.EventFiringWebDriver;
+import org.openqa.selenium.JavascriptExecutor;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +22,10 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class SeleniumPractise {
+
+
+    private EventFiringWebDriver e_driver;
+    private WebEventListener eventListener;
 
     public WebDriver driver;
     public By otherTab = By.cssSelector("#navbar-brand-centered >ul[class='nav navbar-nav navbar-right'] >li:nth-child(4)");
@@ -46,9 +52,15 @@ public class SeleniumPractise {
     @Before
     public void setup()
     {
+
         String browser = System.getProperty("browser");
         DriverFactory.createBrowserInstance(browser);
         driver= DriverFactory.getDriver();
+
+        e_driver = new EventFiringWebDriver(driver);
+        eventListener = new WebEventListener();
+        e_driver.register(eventListener);
+
         //driver.manage().timeouts().implicitlyWait(15,TimeUnit.MILLISECONDS);
         GuiComponents.driver = driver;
 
@@ -184,13 +196,18 @@ public class SeleniumPractise {
         }
 
 
+        //###### Basic authentication
+
+
+
     }
 
 
+    @Ignore
     @Test
     public void uploadFiles() throws InterruptedException, IOException {
-//        String file = "C:\\Users\\Balakrishna_Tulaband\\Desktop\\uploadcheck.html";
-//        driver.get(file);
+
+
         GuiComponents.navigateUrl("http://the-internet.herokuapp.com/");
         GuiComponents.webLinkClick(driver.findElement(fileupload));
         GuiComponents.webButtonClick(driver.findElement(chooseFile));
@@ -198,13 +215,17 @@ public class SeleniumPractise {
         Thread.sleep(1000);
 
         Runtime.getRuntime().exec("C:\\Users\\Balakrishna_Tulaband\\Downloads\\autoit-v3\\install\\Examples\\chromeOpen.exe");
-        //driver.close();
 
        /* Actions a = new Actions(driver);
         a.sendKeys(Keys.TAB)
                 .sendKeys(Keys.TAB)
                 .sendKeys(Keys.TAB)
                 .sendKeys(Keys.ENTER)
+                .build().perform();
+
+        a.keyDown(driver.findElement(chooseFile), Keys.SHIFT)
+                .sendKeys(driver.findElement(chooseFile),"hai")
+                .keyUp(driver.findElement(chooseFile),Keys.SHIFT)
                 .build().perform();*/
 
 
@@ -216,16 +237,127 @@ public class SeleniumPractise {
         //driver.switchTo().activeElement().sendKeys(Keys.ENTER);
 
         Thread.sleep(1000);
-       // driver.close();
+        // driver.close();
 
 
     }
 
 
+    @Ignore
+    @Test
+    public void scrollingexample() throws InterruptedException {
+
+        GuiComponents.navigateUrl("http://www.globalsqa.com/angularJs-protractor/Scrollable/");
+
+        WebElement element = driver.findElement(By.xpath("/html/body/div[1]/table/tbody/tr[17]/td[4]"));
+
+
+        System.out.println("Status Code is " + RestAssured.get("http://www.globalsqa.com/angularJs-protractor/Scrollable/").getStatusCode());
+
+        //WebElement e = driver.findElement(By.xpath("/html/body/div[1]/table/tbody/tr[11]/td[4]"));
+
+        WebElement e = driver.findElement(By.xpath("//*[@class=\"table-container\"]//tbody/tr[last()-15]"));
+
+
+        Thread.sleep(5000);
+
+        JavascriptExecutor js = (JavascriptExecutor)driver;
+        js.executeScript("arguments[0].scrollIntoView();", e);
+
+
+        //js.executeScript("window.scrollTo(document.body.scrollHeight,0)");
+        // js.executeScript("window.scrollByLines(2)");
+
+
+
+        Thread.sleep(5000);
+        //js.executeScript(“window.scrollTo(0,document.body.scrollHeight)”);
+
+        //((JavascriptExecutor)driver).executeScript("window.scrollTo(0,document.body.scrollHeight)");
+
+        //((JavascriptExecutor)driver).executeScript("window.scrollBy(200,300)");
+
+        Assert.assertTrue(element.getText().equalsIgnoreCase("$2,563.63"));
+
+
+
+    }
+
+    @Ignore
+    @Test
+    public void brokenLinks()
+    {
+        GuiComponents.navigateUrl("https://www.toolsqa.com/selenium-webdriver/scroll-element-view-selenium-javascript/");
+        List<WebElement> al = driver.findElements(By.tagName("a"));
+
+
+
+        for( WebElement e : al)
+        {
+
+            if(e.getText()== "")
+            {
+                //System.out.println(e.findElement(By.xpath("/span")).getText());
+            }
+            else
+            {
+                System.out.println(e.getText());
+            }
+        }
+    }
+
+    @Ignore
+    @Test
+    public void webdriverListener() throws IOException {
+
+        e_driver.get("https://www.toolsqa.com/selenium-webdriver/scroll-element-view-selenium-javascript/");
+        /*WebElement ele = e_driver.findElement(By.id("primary-menu1"));
+        ele.click();*/
+
+        File f = ((TakesScreenshot)e_driver).getScreenshotAs(OutputType.FILE);
+
+        FileUtils.copyFile(f, new File("C:\\Users\\Balakrishna_Tulaband\\Desktop\\TR_EXP_MSC_Paperless_001_1\\"+System.currentTimeMillis()+".png"));
+        //FileUtils.copyFile(f, new File("/test/java/screenshots/"+System.currentTimeMillis()+".png"));
+
+    }
+
+
+    @Ignore
+    @Test
+    public void printAllChildNode()
+    {
+        e_driver.get("file:///C:/Users/Balakrishna_Tulaband/Desktop/uploadcheck.html");
+
+        List<WebElement> liChilds = e_driver.findElements(By.xpath("//ul[@id='tree1']//following::a"));
+
+
+
+        for(WebElement ele : liChilds)
+        {
+            String parentlinkTxt = (ele.findElement(By.xpath("parent::node()/."))).getText();
+            String childLinkTxt = ele.getText();
+            System.out.println("Parent link is : " + parentlinkTxt + "\n" + "child Link is : " + childLinkTxt);
+            System.out.println("");
+        }
+
+        System.out.println("Totol childs in the un ordered list is :" + liChilds.size());
+    }
+
+
+    @Test
+    public void asertions()
+    {
+        String s1= "BALA";
+        String s2 = "BALA";
+
+        Assert.assertEquals("Both are same", s1, s2);
+    }
+
     @After
     public void Teardown()
     {
-        //driver.quit();
+        e_driver.quit();
+        driver.quit();
 
     }
 
